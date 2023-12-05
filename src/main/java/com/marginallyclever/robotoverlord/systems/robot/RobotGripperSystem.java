@@ -33,6 +33,13 @@ public class RobotGripperSystem implements EntitySystem {
     }
 
     /**
+     * Update the system over time.
+     * @param dt the time step in seconds.
+     */
+    @Override
+    public void update(double dt) {}
+
+    /**
      * Get the Swing view of this component.
      *
      * @param view      the factory to use to create the panel
@@ -40,31 +47,24 @@ public class RobotGripperSystem implements EntitySystem {
      */
     @Override
     public void decorate(ComponentSwingViewFactory view, Component component) {
-        if( component instanceof RobotGripperComponent) decorateGripper(view,component);
+        if( component instanceof GripperComponentLinear) decorateGripperLinear(view,(GripperComponentLinear)component);
+        else if( component instanceof GripperComponentRotary) decorateGripperRotary(view,(GripperComponentRotary)component);
+        else if( component instanceof GripperComponentJaw) decorateGripperJaw(view,(GripperComponentJaw)component);
     }
 
-    /**
-     * Update the system over time.
-     *
-     * @param dt the time step in seconds.
-     */
-    @Override
-    public void update(double dt) {}
+    private void decorateGripperJaw(ComponentSwingViewFactory view, GripperComponentJaw jaw) {
+        view.add(jaw.openDistance);
+        view.add(jaw.closeDistance);
+    }
 
-    private void decorateGripper(ComponentSwingViewFactory view, Component component) {
-        RobotGripperComponent gripper = (RobotGripperComponent)component;
-
-        view.add(gripper.openDistance);
-        view.add(gripper.closeDistance);
-
-        ViewElementComboBox box = (ViewElementComboBox)view.addComboBox(gripper.mode,RobotGripperComponent.names);
+    private void decorateGripperRotary(ComponentSwingViewFactory view, GripperComponentRotary gripper) {
+        ViewElementComboBox box = (ViewElementComboBox)view.addComboBox(gripper.mode, GripperComponentAbstract.names);
         box.setReadOnly(true);
-
-        ViewElementButton bToggleGripper = view.addButton(Translator.get("RobotGripperSystem.Grab"));
+        ViewElementButton bToggleGripper = view.addButton(Translator.get("RobotGripperSystem.grab"));
         bToggleGripper.addActionEventListener((evt)-> {
             switch(gripper.mode.get()) {
-                case RobotGripperComponent.MODE_OPEN -> doGrab(gripper);
-                case RobotGripperComponent.MODE_CLOSED -> doRelease(gripper);
+                case GripperComponentLinear.MODE_OPEN -> doGrabRotary(gripper);
+                case GripperComponentLinear.MODE_CLOSED -> doReleaseRotary(gripper);
                 default -> {}
             }
         });
@@ -72,31 +72,51 @@ public class RobotGripperSystem implements EntitySystem {
         setGripperButton(bToggleGripper,gripper);
     }
 
-    private void setGripperButton(ViewElementButton bToggleGripper,RobotGripperComponent gripper) {
-        if(gripper.mode.get() == RobotGripperComponent.MODE_OPEN) {
-            bToggleGripper.setText(Translator.get("RobotGripperSystem.grab"));
-            bToggleGripper.setEnabled(true);
-        } else if(gripper.mode.get() == RobotGripperComponent.MODE_CLOSED) {
-            bToggleGripper.setText(Translator.get("RobotGripperSystem.release"));
-            bToggleGripper.setEnabled(true);
-        } else if(gripper.mode.get() == RobotGripperComponent.MODE_OPENING) {
-            bToggleGripper.setText(Translator.get("RobotGripperSystem.opening"));
-            bToggleGripper.setEnabled(false);
-        } else if(gripper.mode.get() == RobotGripperComponent.MODE_CLOSING) {
-            bToggleGripper.setText(Translator.get("RobotGripperSystem.closing"));
-            bToggleGripper.setEnabled(false);
+    private void decorateGripperLinear(ComponentSwingViewFactory view, GripperComponentLinear gripper) {
+        ViewElementComboBox box = (ViewElementComboBox)view.addComboBox(gripper.mode, GripperComponentAbstract.names);
+        box.setReadOnly(true);
+
+        ViewElementButton bToggleGripper = view.addButton(Translator.get("RobotGripperSystem.grab"));
+        bToggleGripper.addActionEventListener((evt)-> {
+            switch(gripper.mode.get()) {
+                case GripperComponentLinear.MODE_OPEN -> doGrabLinear(gripper);
+                case GripperComponentLinear.MODE_CLOSED -> doReleaseLinear(gripper);
+                default -> {}
+            }
+        });
+        gripper.mode.addPropertyChangeListener( e->setGripperButton(bToggleGripper,gripper) );
+        setGripperButton(bToggleGripper,gripper);
+    }
+
+    private void setGripperButton(ViewElementButton bToggleGripper, GripperComponentAbstract gripper) {
+        switch (gripper.getMode()) {
+            case GripperComponentLinear.MODE_OPEN:
+                bToggleGripper.setText(Translator.get("RobotGripperSystem.grab"));
+                bToggleGripper.setEnabled(true);
+                break;
+            case GripperComponentLinear.MODE_CLOSED:
+                bToggleGripper.setText(Translator.get("RobotGripperSystem.release"));
+                bToggleGripper.setEnabled(true);
+                break;
+            case GripperComponentLinear.MODE_OPENING:
+                bToggleGripper.setText(Translator.get("RobotGripperSystem.opening"));
+                bToggleGripper.setEnabled(false);
+                break;
+            case GripperComponentLinear.MODE_CLOSING:
+                bToggleGripper.setText(Translator.get("RobotGripperSystem.closing"));
+                bToggleGripper.setEnabled(false);
+                break;
         }
     }
 
-    public void doGrab(RobotGripperComponent gripper) {
-        List<RobotGripperJawComponent> jaws = gripper.getJaws();
+    private void doGrabRotary(GripperComponentRotary gripper) {
+        List<GripperComponentJaw> jaws = gripper.getJaws();
         if (jaws.isEmpty()) return;
 
-        double distance = (gripper.openDistance.get() - gripper.closeDistance.get());
-
+        // Cast a ray along axis of jaw travel and collect all hits
         List<RayHit> hits = new ArrayList<>();
-        // cast a ray along axis of jaw travel
-        for(RobotGripperJawComponent jaw : jaws) {
+        for(GripperComponentJaw jaw : jaws) {
+            double distance = (jaw.openDistance.get() - jaw.closeDistance.get());
             Matrix4d jawMatrix = jaw.getEntity().getComponent(PoseComponent.class).getWorld();
             Point3d jawP = new Point3d(MatrixHelper.getPosition(jawMatrix));
             Vector3d jawZ = MatrixHelper.getZAxis(jawMatrix);
@@ -106,10 +126,56 @@ public class RobotGripperSystem implements EntitySystem {
                 List<RayHit> jawHit = picker.findRayIntersections(ray);
                 hits.addAll(jawHit);
             } catch (Exception e) {
-                logger.error("Error while raycasting.",e);
+                logger.error("Error while ray casting.",e);
             }
         }
 
+        doGrabShared(gripper, hits);
+
+        // Close the gripper
+        // FIXME until it touches the object.
+        moveJawsRotary(gripper, 1);
+    }
+
+    void doGrabLinear(GripperComponentLinear gripper) {
+        List<GripperComponentJaw> jaws = gripper.getJaws();
+        if (jaws.isEmpty()) return;
+
+        // cast a ray along axis of jaw travel and collect all hits
+        List<RayHit> hits = new ArrayList<>();
+        for(GripperComponentJaw jaw : jaws) {
+            double distance = (jaw.openDistance.get() - jaw.closeDistance.get());
+            Matrix4d jawMatrix = jaw.getEntity().getComponent(PoseComponent.class).getWorld();
+            Point3d jawP = new Point3d(MatrixHelper.getPosition(jawMatrix));
+            Vector3d jawZ = MatrixHelper.getZAxis(jawMatrix);
+            Ray ray = new Ray(jawP,jawZ,distance);
+            RayPickSystem picker = new RayPickSystem(entityManager);
+            try {
+                List<RayHit> jawHit = picker.findRayIntersections(ray);
+                hits.addAll(jawHit);
+            } catch (Exception e) {
+                logger.error("Error while ray casting.",e);
+            }
+        }
+
+        doGrabShared(gripper, hits);
+
+        // close the gripper
+        // FIXME until it touches the object.
+        moveJawsLinear(gripper,1);
+
+        // remember grip direction for later
+        Matrix4d gripperWorld = gripper.getEntity().getComponent(PoseComponent.class).getWorld();
+        gripperWorld.setTranslation(new Vector3d());
+        gripperWorld.invert();
+    }
+
+    /**
+     * Change the gripper status to closed and move all picked items to be children of the gripper.
+     * @param gripper the gripper to use
+     * @param hits the list of items to move
+     */
+    private void doGrabShared(GripperComponentAbstract gripper, List<RayHit> hits) {
         // do not consider the gripper itself or the jaws.
         removeGripperAndJawsFromHits(gripper, hits);
 
@@ -124,27 +190,36 @@ public class RobotGripperSystem implements EntitySystem {
         }
 
         // change state to "closed"
-        gripper.mode.set(RobotGripperComponent.MODE_CLOSED);
-
-        // close the gripper
-        // TODO until it touches the object.
-        moveJaws(gripper, distance/2);
-
-        // remember grip direction for later
-        Matrix4d gripperWorld = gripper.getEntity().getComponent(PoseComponent.class).getWorld();
-        gripperWorld.setTranslation(new Vector3d());
-        gripperWorld.invert();
+        gripper.mode.set(GripperComponentLinear.MODE_CLOSED);
     }
 
-    public void doRelease(RobotGripperComponent gripper) {
+    /**
+     * Open the gripper
+     * @param gripper
+     */
+    private void doReleaseRotary(GripperComponentRotary gripper) {
+        doReleaseShared(gripper);
+        moveJawsRotary(gripper, -1);
+    }
+
+    /**
+     * Open the gripper
+     * @param gripper
+     */
+    void doReleaseLinear(GripperComponentLinear gripper) {
+        doReleaseShared(gripper);
+        moveJawsLinear(gripper, -1);
+    }
+
+    private void doReleaseShared(GripperComponentAbstract gripper) {
         // release the object
-        List<RobotGripperJawComponent> jaws = gripper.getJaws();
+        List<GripperComponentJaw> jaws = gripper.getJaws();
         List<Entity> children = new ArrayList<>(gripper.getEntity().getChildren());
 
         // move all non-jaw items from the list to the world
         if(children.size()>jaws.size()) {
             for(Entity child : children) {
-                if(child.getComponent(RobotGripperJawComponent.class) != null) continue;
+                if(child.getComponent(GripperComponentJaw.class) != null) continue;
                 // move the entity to the world
                 Matrix4d entityWorld = child.getComponent(PoseComponent.class).getWorld();
                 entityManager.addEntityToParent(child, entityManager.getRoot());
@@ -153,21 +228,41 @@ public class RobotGripperSystem implements EntitySystem {
         }
 
         // change state to "open"
-        gripper.mode.set(RobotGripperComponent.MODE_OPEN);
-
-        // open the gripper
-        double distance = (gripper.openDistance.get() - gripper.closeDistance.get());
-        moveJaws(gripper, -distance/2);
+        gripper.mode.set(GripperComponentLinear.MODE_OPEN);
     }
 
-    private void moveJaws(RobotGripperComponent gripper, double distance) {
-        List<RobotGripperJawComponent> jaws = gripper.getJaws();
-        for(RobotGripperJawComponent jaw : jaws) {
-            moveOneJaw(jaw, distance);
+    /**
+     * @param gripper the gripper to move
+     * @param direction 1 for close, -1 for open
+     */
+    private void moveJawsRotary(GripperComponentRotary gripper, double direction) {
+        List<GripperComponentJaw> jaws = gripper.getJaws();
+        for(GripperComponentJaw jaw : jaws) {
+            double distance = (jaw.openDistance.get() - jaw.closeDistance.get());
+            moveOneJawRotary(jaw, distance);
         }
     }
 
-    private void moveOneJaw(RobotGripperJawComponent jaw, double distance) {
+    private void moveOneJawRotary(GripperComponentJaw jaw, double distance) {
+        PoseComponent pose = jaw.getEntity().getComponent(PoseComponent.class);
+        Vector3d r = pose.getRotation();
+        r.z += distance;
+        pose.setRotation(r);
+    }
+
+    /**
+     * @param gripper the gripper to move
+     * @param direction 1 for close, -1 for open
+     */
+    private void moveJawsLinear(GripperComponentLinear gripper,double direction) {
+        List<GripperComponentJaw> jaws = gripper.getJaws();
+        for(GripperComponentJaw jaw : jaws) {
+            double distance = (jaw.openDistance.get() - jaw.closeDistance.get());
+            moveOneJawLinear(jaw, distance*direction);
+        }
+    }
+
+    private void moveOneJawLinear(GripperComponentJaw jaw, double distance) {
         PoseComponent pose = jaw.getEntity().getComponent(PoseComponent.class);
         Matrix4d m = pose.getWorld();
         Vector3d p = MatrixHelper.getPosition(m);
@@ -177,10 +272,10 @@ public class RobotGripperSystem implements EntitySystem {
         pose.setWorld(m);
     }
 
-    private void removeGripperAndJawsFromHits(RobotGripperComponent gripper, List<RayHit> hits) {
-        List<RobotGripperJawComponent> jaws = gripper.getJaws();
+    private void removeGripperAndJawsFromHits(GripperComponentAbstract gripper, List<RayHit> hits) {
+        List<GripperComponentJaw> jaws = gripper.getJaws();
         List<ShapeComponent> meshes = new ArrayList<>();
-        for(RobotGripperJawComponent jaw : jaws) {
+        for(GripperComponentJaw jaw : jaws) {
             meshes.add(jaw.getEntity().getComponent(ShapeComponent.class));
         }
         ShapeComponent gripperBody = gripper.getEntity().getComponent(ShapeComponent.class);

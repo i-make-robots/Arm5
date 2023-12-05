@@ -34,10 +34,10 @@ public abstract class ComponentFactory {
 
 			MeshFromFile.class,
 			Box.class,
+			Cylinder.class,
+			Decal.class,
 			Grid.class,
 			Sphere.class,
-			Decal.class,
-			Cylinder.class,
 
 			Background.class,
 
@@ -56,8 +56,9 @@ public abstract class ComponentFactory {
 			ProgramComponent.class,
 			ProjectorComponent.class,
 
-			RobotGripperComponent.class,
-			RobotGripperJawComponent.class,
+			GripperComponentLinear.class,
+			GripperComponentRotary.class,
+			GripperComponentJaw.class,
 
 			DCMotorComponent.class,
 			ServoComponent.class,

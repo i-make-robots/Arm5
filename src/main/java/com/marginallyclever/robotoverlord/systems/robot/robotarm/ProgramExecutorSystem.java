@@ -3,7 +3,7 @@ package com.marginallyclever.robotoverlord.systems.robot.robotarm;
 import com.marginallyclever.robotoverlord.components.Component;
 import com.marginallyclever.robotoverlord.components.PoseComponent;
 import com.marginallyclever.robotoverlord.components.RobotComponent;
-import com.marginallyclever.robotoverlord.components.RobotGripperComponent;
+import com.marginallyclever.robotoverlord.components.GripperComponentLinear;
 import com.marginallyclever.robotoverlord.components.program.ProgramComponent;
 import com.marginallyclever.robotoverlord.components.program.ProgramEventComponent;
 import com.marginallyclever.robotoverlord.components.program.ProgramPathComponent;
@@ -204,12 +204,12 @@ public class ProgramExecutorSystem  implements EntitySystem {
     }
 
     private boolean executeEvent(RobotComponent robot, ProgramComponent program, ProgramEventComponent event, Entity programStep, double dt) {
-        RobotGripperComponent gripper = robot.getEntity().findFirstComponentRecursive(RobotGripperComponent.class);
+        GripperComponentLinear gripper = robot.getEntity().findFirstComponentRecursive(GripperComponentLinear.class);
         if(gripper==null) return true;  // no gripper, no action.
 
         switch (event.type.get()) {
-            case ProgramEventComponent.GRIPPER_GRAB -> gripper.mode.set(RobotGripperComponent.MODE_CLOSING);
-            case ProgramEventComponent.GRIPPER_RELEASE -> gripper.mode.set(RobotGripperComponent.MODE_OPENING);
+            case ProgramEventComponent.GRIPPER_GRAB -> gripper.mode.set(GripperComponentLinear.MODE_CLOSING);
+            case ProgramEventComponent.GRIPPER_RELEASE -> gripper.mode.set(GripperComponentLinear.MODE_OPENING);
             default -> {
                 // TODO implement other events
                 logger.warn("unimplemented event type: {}", event.type.get());
