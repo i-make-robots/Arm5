@@ -9,6 +9,7 @@ import com.marginallyclever.robotoverlord.entity.EntityManager;
 import com.marginallyclever.robotoverlord.parameters.swing.ViewElementButton;
 import com.marginallyclever.robotoverlord.parameters.swing.ViewElementComboBox;
 import com.marginallyclever.robotoverlord.parameters.swing.ComponentSwingViewFactory;
+import com.marginallyclever.robotoverlord.swing.translator.Translator;
 import com.marginallyclever.robotoverlord.systems.EntitySystem;
 import com.marginallyclever.robotoverlord.systems.RayPickSystem;
 import org.slf4j.Logger;
@@ -20,6 +21,9 @@ import javax.vecmath.Vector3d;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This system is responsible for handling roboot grippers.
+ */
 public class RobotGripperSystem implements EntitySystem {
     private static final Logger logger = LoggerFactory.getLogger(RobotGripperSystem.class);
     private final EntityManager entityManager;
@@ -56,7 +60,7 @@ public class RobotGripperSystem implements EntitySystem {
         ViewElementComboBox box = (ViewElementComboBox)view.addComboBox(gripper.mode,RobotGripperComponent.names);
         box.setReadOnly(true);
 
-        ViewElementButton bToggleGripper = view.addButton("Grab");
+        ViewElementButton bToggleGripper = view.addButton(Translator.get("RobotGripperSystem.Grab"));
         bToggleGripper.addActionEventListener((evt)-> {
             switch(gripper.mode.get()) {
                 case RobotGripperComponent.MODE_OPEN -> doGrab(gripper);
@@ -70,23 +74,23 @@ public class RobotGripperSystem implements EntitySystem {
 
     private void setGripperButton(ViewElementButton bToggleGripper,RobotGripperComponent gripper) {
         if(gripper.mode.get() == RobotGripperComponent.MODE_OPEN) {
-            bToggleGripper.setText("Grab");
+            bToggleGripper.setText(Translator.get("RobotGripperSystem.grab"));
             bToggleGripper.setEnabled(true);
         } else if(gripper.mode.get() == RobotGripperComponent.MODE_CLOSED) {
-            bToggleGripper.setText("Release");
+            bToggleGripper.setText(Translator.get("RobotGripperSystem.release"));
             bToggleGripper.setEnabled(true);
         } else if(gripper.mode.get() == RobotGripperComponent.MODE_OPENING) {
-            bToggleGripper.setText("Opening");
+            bToggleGripper.setText(Translator.get("RobotGripperSystem.opening"));
             bToggleGripper.setEnabled(false);
         } else if(gripper.mode.get() == RobotGripperComponent.MODE_CLOSING) {
-            bToggleGripper.setText("Closing");
+            bToggleGripper.setText(Translator.get("RobotGripperSystem.closing"));
             bToggleGripper.setEnabled(false);
         }
     }
 
     public void doGrab(RobotGripperComponent gripper) {
         List<RobotGripperJawComponent> jaws = gripper.getJaws();
-        if (jaws.size()==0) return;
+        if (jaws.isEmpty()) return;
 
         double distance = (gripper.openDistance.get() - gripper.closeDistance.get());
 
@@ -102,7 +106,7 @@ public class RobotGripperSystem implements EntitySystem {
                 List<RayHit> jawHit = picker.findRayIntersections(ray);
                 hits.addAll(jawHit);
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error("Error while raycasting.",e);
             }
         }
 

@@ -376,4 +376,9 @@
 	<string><key>PreferencesPanel.title</key><value>Preferences</value></string>
 	<string><key>InteractionPreferencesPanel.title</key><value>Interaction</value></string>
 	<string><key>GraphicsPreferencesPanel.title</key><value>Graphics</value></string>
+
+	<string><key>RobotGripperSystem.grab</key><value>Grab</value></string>
+	<string><key>RobotGripperSystem.release</key><value>Release</value></string>
+	<string><key>RobotGripperSystem.opening</key><value>Opening</value></string>
+	<string><key>RobotGripperSystem.closing</key><value>Closing</value></string>
 </language>
