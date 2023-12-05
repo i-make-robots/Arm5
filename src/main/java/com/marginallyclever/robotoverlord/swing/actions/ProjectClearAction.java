@@ -1,5 +1,6 @@
 package com.marginallyclever.robotoverlord.swing.actions;
 
+import com.marginallyclever.robotoverlord.clipboard.Clipboard;
 import com.marginallyclever.robotoverlord.components.*;
 import com.marginallyclever.robotoverlord.components.shapes.Sphere;
 import com.marginallyclever.robotoverlord.entity.Entity;
@@ -42,10 +43,15 @@ public class ProjectClearAction extends AbstractAction {
                 (String)this.getValue(AbstractAction.NAME),
                 JOptionPane.YES_NO_OPTION);
         if (result == JOptionPane.YES_OPTION) {
-			clearScene();
-			UndoSystem.reset();
-			addDefaultEntities();
+			doIt();
         }
+	}
+
+	public void doIt() {
+		clearScene();
+		UndoSystem.reset();
+		addDefaultEntities();
+		Clipboard.setSelectedEntity(project.getEntityManager().getRoot());
 	}
 
 	public void clearScene() {

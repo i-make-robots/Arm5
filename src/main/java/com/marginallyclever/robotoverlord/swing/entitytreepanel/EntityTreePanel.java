@@ -164,19 +164,23 @@ public class EntityTreePanel extends JPanel {
 	}
 
 	private void addTreeSelectionListener() {
-		tree.addTreeSelectionListener((arg0) -> {
-			List<Entity> selected = new ArrayList<>();
-			TreePath[] selectedPaths = tree.getSelectionPaths();
-			if(selectedPaths!=null) {
-				for (TreePath selectedPath : selectedPaths) {
-					EntityTreeNode selectedNode = (EntityTreeNode) selectedPath.getLastPathComponent();
-					Entity entity = (Entity)selectedNode.getUserObject();
-					selected.add(entity);
-				}
-			}
-			UndoSystem.addEvent(new SelectEdit(Clipboard.getSelectedEntities(), selected));
-		});
+		tree.addTreeSelectionListener((arg0) -> updateTreeSelection());
+		updateTreeSelection();
 	}
+
+	private void updateTreeSelection() {
+		List<Entity> selected = new ArrayList<>();
+		TreePath[] selectedPaths = tree.getSelectionPaths();
+		if(selectedPaths!=null) {
+			for (TreePath selectedPath : selectedPaths) {
+				EntityTreeNode selectedNode = (EntityTreeNode) selectedPath.getLastPathComponent();
+				Entity entity = (Entity)selectedNode.getUserObject();
+				selected.add(entity);
+			}
+		}
+		UndoSystem.addEvent(new SelectEdit(Clipboard.getSelectedEntities(), selected));
+	}
+
 
 	private void recursivelyAddChildren(EntityTreeNode parentNode, Entity child) {
 		//logger.debug("recursivelyAddChildren "+child.getName()+" to "+parentNode.getEntity().getName());

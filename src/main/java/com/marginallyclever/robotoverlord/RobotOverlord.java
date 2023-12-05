@@ -125,8 +125,7 @@ public class RobotOverlord {
 		listenToClipboardChanges();
 
 		ProjectClearAction action = new ProjectClearAction(project);
-		action.clearScene();
-		action.addDefaultEntities();
+		action.doIt();
 
 		updateActionEnableStatus();
 
@@ -153,7 +152,7 @@ public class RobotOverlord {
 		//renderPanel = new OpenGLTestPerspective(project.getEntityManager());
 		//renderPanel = new OpenGLTestStencil(project.getEntityManager());
 		renderPanel = new OpenGLRenderPanel(project.getEntityManager());
-		renderPanel.setUpdateCallback((dt)->systemManager.update(dt));
+		renderPanel.setUpdateCallback(systemManager::update);
 	}
 
 	private void listenToClipboardChanges() {
