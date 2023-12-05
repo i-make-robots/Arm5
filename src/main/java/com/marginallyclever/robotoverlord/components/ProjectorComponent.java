@@ -2,6 +2,7 @@ package com.marginallyclever.robotoverlord.components;
 
 import com.github.sarxos.webcam.Webcam;
 import com.jogamp.opengl.GL3;
+import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.awt.AWTTextureIO;
 import com.marginallyclever.robotoverlord.systems.render.mesh.Mesh;
@@ -19,11 +20,13 @@ public class ProjectorComponent  extends ShapeComponent {
     private BufferedImage image;
     private Texture texture;
     private MaterialComponent myMaterial;
+    private final Webcam webcam = Webcam.getDefault();
 
     public ProjectorComponent() {
         super();
 
         myMesh = new Mesh();
+        webcam.open();
     }
 
     @Override
@@ -51,12 +54,15 @@ public class ProjectorComponent  extends ShapeComponent {
     }
 
     private void updateTexture(GL3 gl) {
+        GLProfile profile = gl.getGLProfile();
+        if(profile==null) return;
+
         image = captureFrame();
 
         if (texture == null) {
-            texture = AWTTextureIO.newTexture(gl.getGLProfile(), image, true);
+            texture = AWTTextureIO.newTexture(profile, image, false);
         } else {
-            texture.updateImage(gl, AWTTextureIO.newTextureData(gl.getGLProfile(), image, true));
+            texture.updateImage(gl, AWTTextureIO.newTextureData(profile, image, false));
         }
     }
 
@@ -64,15 +70,6 @@ public class ProjectorComponent  extends ShapeComponent {
      * @return one frame of video from the default camera.
      */
     private BufferedImage captureFrame() {
-        // get default webcam and open it
-        Webcam webcam = Webcam.getDefault();
-        webcam.open();
-        BufferedImage img = webcam.getImage();
-        webcam.close();
-        return img;
-    }
-
-    public BufferedImage getBufferedImage() {
-        return image;
+        return webcam.getImage();
     }
 }
