@@ -10,11 +10,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RobotArmComponent extends Component {
-    private static final Logger logger = LoggerFactory.getLogger(RobotArmComponent.class);
     public final ListParameter<ReferenceParameter> joints = new ListParameter<>("Joints",new ReferenceParameter());
     public final ReferenceParameter endEffectorTarget = new ReferenceParameter("End Effector Target",null);
     public DoubleParameter desiredLinearVelocity = new DoubleParameter("Desired Linear Velocity (cm/s)",1);
-    private int activeJoint;
 
     public RobotArmComponent() {
         super();
