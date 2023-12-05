@@ -262,8 +262,8 @@ public class OpenGLRenderPanel implements RenderPanel, GLEventListener, MouseLis
     private void reloadAllAssets(GL3 gl) {
         logger.info("reloading all assets");
 
-        TextureParameter.unloadAll(gl);
-        TextureParameter.loadAll();
+        TextureFactory.unloadAll(gl);
+        TextureFactory.loadAll();
 
         List<Entity> list = new ArrayList<>();
         list.add(entityManager.getRoot());
@@ -309,7 +309,6 @@ public class OpenGLRenderPanel implements RenderPanel, GLEventListener, MouseLis
             logger.error("Exception during render",e);
         }
     }
-
 
     @Override
     public void mouseClicked(MouseEvent e) {

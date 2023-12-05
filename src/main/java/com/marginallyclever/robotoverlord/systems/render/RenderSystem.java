@@ -5,6 +5,7 @@ import com.marginallyclever.robotoverlord.components.program.ProgramPathComponen
 import com.marginallyclever.robotoverlord.components.shapes.*;
 import com.marginallyclever.robotoverlord.parameters.TextureParameter;
 import com.marginallyclever.robotoverlord.parameters.swing.ComponentSwingViewFactory;
+import com.marginallyclever.robotoverlord.renderpanel.TextureFactory;
 import com.marginallyclever.robotoverlord.systems.EntitySystem;
 import com.marginallyclever.robotoverlord.systems.render.gcodepath.PathFactory;
 import com.marginallyclever.robotoverlord.systems.render.mesh.load.MeshFactory;
@@ -159,7 +160,7 @@ public class RenderSystem implements EntitySystem {
         view.add(material.drawOnTop);
         view.add(material.drawOnBottom);
 
-        view.addFilename(material.texture, TextureParameter.getFilters());
+        view.addFilename(material.texture, TextureFactory.getFilters());
     }
 
     /**

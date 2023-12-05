@@ -20,16 +20,6 @@ import java.util.Set;
  * @author Dan Royer
  */
 public class TextureParameter extends FilenameParameter {
-	public static final HashMap<String, Texture> texturePool = new HashMap<>();
-	private static final Logger logger = LoggerFactory.getLogger(TextureParameter.class);
-
-	// supported file formats
-	private static final List<FileFilter> filters = List.of(
-		new FileNameExtensionFilter("PNG", "png"),
-		new FileNameExtensionFilter("BMP", "bmp"),
-		new FileNameExtensionFilter("JPEG", "jpeg","jpg"),
-		new FileNameExtensionFilter("TGA", "tga")
-	);
 
 	private transient Texture texture;
 	private transient boolean textureDirty;
@@ -37,48 +27,6 @@ public class TextureParameter extends FilenameParameter {
 	public TextureParameter(String name,String fileName) {
 		super(name,fileName);
 		textureDirty=true;
-	}
-
-	public static List<FileFilter> getFilters() {
-		return filters;
-	}
-
-	public static Texture createTexture(String filename) {
-		Texture texture = texturePool.get(filename);
-		if (texture == null) {
-			texture = loadTextureFromFile(filename);
-			if (texture != null)
-				texturePool.put(filename, texture);
-		}
-		return texture;
-	}
-
-	private static Texture loadTextureFromFile(String filename) {
-		Texture t = null;
-
-		try {
-			t = TextureIO.newTexture(FileHelper.open(filename), false, filename.substring(filename.lastIndexOf('.') + 1));
-		} catch (IOException e) {
-			//e.printStackTrace();
-			logger.error("Failed to load {}", filename, e);
-		}
-
-		return t;
-	}
-
-	public static void unloadAll(GL3 gl) {
-		for (Texture t : texturePool.values()) {
-			t.destroy(gl);
-		}
-	}
-
-	public static void loadAll() {
-		Set<String> keys = texturePool.keySet();
-		texturePool.clear();
-		for (String key : keys) {
-			Texture t = TextureParameter.createTexture(key);
-			texturePool.put(key, t);
-		}
 	}
 
 	public void render(GL3 gl) {
@@ -107,7 +55,7 @@ public class TextureParameter extends FilenameParameter {
 
 		String value = get();
 		if(value != null && !value.isEmpty()) {
-			texture = TextureParameter.createTexture(value);
+			texture = TextureFactory.createTexture(value);
 			if(texture != null) textureDirty = false;
 		}
 	}
