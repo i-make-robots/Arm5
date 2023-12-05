@@ -71,7 +71,7 @@ public class Clipboard {
         listeners.remove(l);
     }
 
-    private static void fireClipboardChanged() {
+    public static void fireClipboardChanged() {
         for(ClipboardListener l : listeners) {
             l.onClipboardChanged();
         }

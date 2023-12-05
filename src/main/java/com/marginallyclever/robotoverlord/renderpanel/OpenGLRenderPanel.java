@@ -164,7 +164,7 @@ public class OpenGLRenderPanel implements RenderPanel, GLEventListener, MouseLis
         } else {
             this.activeToolIndex = activeToolIndex;
         }
-        Clipboard.setSelectedEntities(Clipboard.getSelectedEntities());
+        Clipboard.fireClipboardChanged();
     }
 
     private void hideDefaultCursor() {
